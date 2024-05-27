@@ -1,0 +1,16 @@
+pg_io:
+  query: "select backend_type, object, context, reads as reads_total, writes as writes_total, op_bytes, fsyncs as fsyncs_total from pg_stat_io;"
+  master: true
+  metrics:
+    - reads_total:
+        usage: "COUNTER"
+    - writes_total:
+        usage: "COUNTER"
+    - fsyncs_total:
+        usage: "COUNTER"
+    - backend_type:
+        usage: "LABEL"
+    - object:
+        usage: "LABEL"
+    - context:
+        usage: "LABEL"

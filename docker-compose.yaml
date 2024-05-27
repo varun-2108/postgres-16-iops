@@ -1,0 +1,56 @@
+version: '3'
+
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:16.0
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./volumes/postgres_data:/data/postgres
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./init.sh:/docker-entrypoint-initdb.d/init.sh
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./volumes/prometheus_data:/prometheus
+      - ./prometheus-config/:/etc/prometheus
+    depends_on:
+      - postgres
+      - postgres-exporter
+    ports:
+      - "9090:9090"
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    environment:
+      GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION: "true"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+      GF_AUTH_DISABLE_SIGNOUT_MENU: "true"
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+    volumes:
+      - ./volumes/grafana/:/var/lib/grafana
+      - ./grafana:/etc/grafana
+    ports:
+      - "9100:3000"
+
+  postgres-exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter
+    container_name: postgres-exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgres:postgres@postgres:5432/postgres?sslmode=disable"
+      PG_EXPORTER_EXTEND_QUERY_PATH: "/queries/queries.yaml"
+      PG_EXPORTER_AUTO_DISCOVER_DATABASES: "true"
+      PG_EXPORTER_EXCLUDE_DATABASES: "template0,template1"
+      PG_EXPORTER_CONSTANT_LABELS: "cluster_name=local"
+    volumes:
+      - ./postgres-exporter/:/queries
+    ports:
+      - 9187:9187
