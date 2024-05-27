@@ -33,8 +33,8 @@ if __name__ == "__main__":
         create_table(conn)
 
         while True:
-            insert_data(conn, 100000)
-            print("Inserted %d rows" % 10000)
+            insert_data(conn, 1000)
+            print("Inserted %d rows" % 1000)
             sleep(1)
 
     except Exception as e:
